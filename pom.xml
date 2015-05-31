@@ -1,0 +1,153 @@
+<?xml version="1.0"?>
+
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+						http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>br.com.liquibase</groupId>
+	<version>1.0.0</version>
+	<artifactId>liquibase-db</artifactId>
+	<name>liquibase-db</name>
+	<packaging>jar</packaging>
+	<url>http://maven.apache.org</url>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<skip.integration.test>false</skip.integration.test>
+		<timestamp>${maven.build.timestamp}</timestamp>
+		<maven.build.timestamp.format>yyyy-MM-dd_HH_mm</maven.build.timestamp.format>
+	</properties>
+
+	<profiles>
+		<!-- CIT Ambiente de desenvolvimento -->
+		<profile>
+			<id>DEV</id>
+			<properties>
+				<datasource.username>usr</datasource.username>
+				<datasource.password>senha</datasource.password>
+				<datasource.url>jdbc:oracle:thin:@hostname:1521:name</datasource.url>
+				<database-load.dir>dev/DEV</database-load.dir>
+				<datasource.dropAll>false</datasource.dropAll>
+				<datasource.promptOnNonLocalDatabase>false</datasource.promptOnNonLocalDatabase>
+			</properties>
+		</profile>
+	</profiles>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.liquibase</groupId>
+				<artifactId>liquibase-maven-plugin</artifactId>
+				<version>3.3.0</version>
+				<executions>
+					<execution>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>status</goal>
+							<goal>updateSQL</goal>							
+							<goal>update</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<changeLogFile>src/main/resources/db/changelog/db.changelog-master.xml</changeLogFile>
+					<driver>oracle.jdbc.driver.OracleDriver</driver>
+					<url>${datasource.url}</url>
+					<username>${datasource.username}</username>
+					<password>${datasource.password}</password>
+					<promptOnNonLocalDatabase>${datasource.promptOnNonLocalDatabase}</promptOnNonLocalDatabase>
+					<migrationSqlOutputFile>${basedir}/target/liquibase/PATCH_${timestamp}.sql</migrationSqlOutputFile>
+					<dropFirst>${datasource.dropAll}</dropFirst>
+				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>com.oracle</groupId>
+						<artifactId>ojdbc6</artifactId>
+						<version>11.2.0</version>
+						<scope>system</scope>
+						<systemPath>${basedir}/lib/ojdbc6.jar</systemPath>
+					</dependency>
+				</dependencies>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>sql-maven-plugin</artifactId>
+				<version>1.5</version>
+				<dependencies>
+					<!-- Oracle Driver -->
+					<dependency>
+						<groupId>com.oracle</groupId>
+						<artifactId>ojdbc6</artifactId>
+						<version>11.2.0</version>
+						<scope>system</scope>		 
+						<systemPath>${basedir}/lib/ojdbc6.jar</systemPath> 
+					</dependency>
+				</dependencies>	
+				<configuration>
+					<driver>oracle.jdbc.driver.OracleDriver</driver>				   
+					<url>${datasource.url}</url>
+					<username>${datasource.username}</username>
+					<password>${datasource.password}</password>
+				  	<delimiterType>normal</delimiterType>		
+				  	<delimiter>/</delimiter>	
+                  	<orderFile>ascending</orderFile>
+                    <sqlCommand>
+						BEGIN
+						 
+						
+						FOR r1 IN ( SELECT 'DROP ' || object_type || '   ' || object_name || DECODE ( object_type, 'TABLE', ' CASCADE CONSTRAINTS PURGE' ) AS v_sql
+						                FROM user_objects
+						               WHERE object_type IN ( 'TABLE', 'VIEW', 'PACKAGE', 'TYPE', 'PROCEDURE', 'FUNCTION', 'TRIGGER', 'SEQUENCE' ) AND object_name not in ('TB_DPARA_SUB_ADQRE_FPGTO', 'TB_DPARA_SUB_ADQRE_FPGTO_HIST')
+						               ORDER BY object_type,
+						                        object_name ) LOOP
+						    EXECUTE IMMEDIATE r1.v_sql;
+						    
+						
+						  END LOOP;
+						 EXCEPTION
+						      WHEN OTHERS THEN NULL; 
+						END;
+						/
+					</sqlCommand>
+				</configuration>
+			</plugin>  			
+		</plugins>
+		<pluginManagement>
+			<plugins>
+				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>org.liquibase</groupId>
+										<artifactId>
+											liquibase-maven-plugin
+										</artifactId>
+										<versionRange>
+											[3.3.0,)
+										</versionRange>
+										<goals>
+											<goal>updateSQL</goal>
+											<goal>update</goal>
+											<goal>status</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+</project>

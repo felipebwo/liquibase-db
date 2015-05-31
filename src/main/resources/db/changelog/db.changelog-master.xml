@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog 
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd
+    http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+	 <!-- Create Database -->
+	  	<include file="scripts/001-DB-INITIAL-DATA-MODEL-EXPORT.sql" relativeToChangelogFile="true" />
+
+	  	<!-- Nova Estrutura para Contemplar os Scripts de Rollback -->
+		<include file="scripts/028.PATCH_INIT_ROLLBACK.xml" relativeToChangelogFile="true" />
+		<include file="scripts/029.PATCH_PRODUTO_26_05_15.xml" relativeToChangelogFile="true" />
+		<include file="scripts/030.PATCH_PRODUTO_26_05_15.xml" relativeToChangelogFile="true" />
+		
+</databaseChangeLog>

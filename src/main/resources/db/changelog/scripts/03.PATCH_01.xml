@@ -1,0 +1,68 @@
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog 
+							http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd 
+							http://www.liquibase.org/xml/ns/dbchangelog-ext 
+							http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+	<changeSet id="3" author="felipeb" runOnChange="true">
+
+		<sql endDelimiter="\n/">
+				<![CDATA[
+					create or replace trigger trg_aiudr_prodt_audit
+						after insert or delete or update on tb_prodt
+						for each row
+						declare
+						  v_act char(1) := '';
+						begin
+						  if updating then
+						    v_act := 'A';
+						  elsif deleting then
+						    v_act := 'E';
+						  elsif inserting then
+						    v_act := 'I';
+						  end if;
+						  if inserting then 
+						    insert into tb_prodt_hist (     dt_aprov,      dt_reqrm,      id_pprie,      id_tp_pgto,      sttus_prodt,      usuar_aprov,      usuar_reqrm,      vr_tx_oper,      dt_vigencia, dt_hist, id_hist,               tp_alt)
+						                       values (:new.dt_aprov, :new.dt_reqrm, :new.id_pprie, :new.id_tp_pgto, :new.sttus_prodt, :new.usuar_aprov, :new.usuar_reqrm, :new.vr_tx_oper, :new.dt_vigencia, sysdate, sq_prodt_hist.nextval, v_act);
+						  else
+						    insert into tb_prodt_hist (     dt_aprov,      dt_reqrm,      id_pprie,      id_tp_pgto,      sttus_prodt,      usuar_aprov,      usuar_reqrm,      vr_tx_oper,      dt_vigencia, dt_hist, id_hist,               tp_alt)
+						                       values (:old.dt_aprov, :old.dt_reqrm, :old.id_pprie, :old.id_tp_pgto, :old.sttus_prodt, :old.usuar_aprov, :old.usuar_reqrm, :old.vr_tx_oper, :old.dt_vigencia, sysdate, sq_prodt_hist.nextval, v_act);
+						  end if;
+						end;
+				]]>
+		</sql>
+
+
+		<rollback>
+			<sql endDelimiter="\n/">
+			<![CDATA[
+				create or replace trigger trg_aiudr_prodt_audit
+					after insert or delete or update on tb_prodt
+					for each row
+					declare
+					  v_act char(1) := '';
+					begin
+					  if updating then
+					    v_act := 'A';
+					  elsif deleting then
+					    v_act := 'E';
+					  elsif inserting then
+					    v_act := 'I';
+					  end if;
+					  if inserting then 
+					    insert into tb_prodt_hist (     dt_aprov,      dt_reqrm,      id_pprie,      id_tp_pgto,      sttus_prodt,      usuar_aprov,      usuar_reqrm,      vr_tx_oper, dt_hist, id_hist,               tp_alt)
+					                       values (:new.dt_aprov, :new.dt_reqrm, :new.id_pprie, :new.id_tp_pgto, :new.sttus_prodt, :new.usuar_aprov, :new.usuar_reqrm, :new.vr_tx_oper, sysdate, sq_prodt_hist.nextval, v_act);
+					  else
+					    insert into tb_prodt_hist (     dt_aprov,      dt_reqrm,      id_pprie,      id_tp_pgto,      sttus_prodt,      usuar_aprov,      usuar_reqrm,      vr_tx_oper, dt_hist, id_hist,               tp_alt)
+					                       values (:old.dt_aprov, :old.dt_reqrm, :old.id_pprie, :old.id_tp_pgto, :old.sttus_prodt, :old.usuar_aprov, :old.usuar_reqrm, :old.vr_tx_oper, sysdate, sq_prodt_hist.nextval, v_act);
+					  end if;
+					end;
+			]]>
+			</sql>
+
+		</rollback>
+		
+	</changeSet>
+
+</databaseChangeLog>
